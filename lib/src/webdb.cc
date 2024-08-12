@@ -825,6 +825,7 @@ arrow::Status WebDB::Open(std::string_view args_json) {
         db_config.options.use_temporary_directory = false;
         db_config.options.access_mode = access_mode;
         db_config.options.duckdb_api = "wasm";
+        db_config.options.use_direct_io = config_->use_direct_io;
         auto db = make_shared_ptr<duckdb::DuckDB>(config_->path, &db_config);
 #ifndef WASM_LOADABLE_EXTENSIONS
         duckdb_web_parquet_init(db.get());
