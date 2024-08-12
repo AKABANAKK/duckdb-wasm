@@ -48,7 +48,7 @@ export class DuckDBNodeBindings extends DuckDBBindingsBase {
         // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
         imports: any,
         success: (instance: WebAssembly.Instance, module: WebAssembly.Module) => void,
-    ): Emscripten.WebAssemblyExports {
+    ): WebAssembly.Exports | undefined {
         globalThis.DUCKDB_RUNTIME = {};
         for (const func of Object.getOwnPropertyNames(this._runtime)) {
             if (func == 'constructor') continue;
@@ -58,7 +58,7 @@ export class DuckDBNodeBindings extends DuckDBBindingsBase {
         WebAssembly.instantiate(buf, imports).then(output => {
             success(output.instance, output.module);
         });
-        return [];
+        return undefined;
     }
 
     /** Instantiate the bindings */

@@ -14,15 +14,13 @@ RUN apt-get update -qq \
     && add-apt-repository ppa:mozillateam/ppa \
     && mkdir -p /etc/apt/preferences.d/ \
     && apt-get update -qq \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
+    && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y \
     && apt-get clean \
     && export CHROME_BIN=/usr/bin/google-chrome \
-    && rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/google.list
+    && rm -rf /var/lib/apt/lists/* google-chrome-stable_current_amd64.deb
 
-ARG EMSDK_VERSION="3.1.56"
+ARG EMSDK_VERSION="3.1.64"
 RUN mkdir -p /opt/emsdk \
     && cd /opt/emsdk \
     && curl -SL https://github.com/emscripten-core/emsdk/archive/${EMSDK_VERSION}.tar.gz | tar -xz --strip-components=1 \
@@ -65,6 +63,7 @@ RUN export RUSTUP_HOME=/opt/rust \
     && curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain ${RUST_VERSION} -y \
     && export PATH=$PATH:/opt/rust/bin \
     && rustup target add wasm32-unknown-unknown \
+    && cargo install wasm-pack \
     && chown -R ${UID}:${GID} /opt/rust
 
 RUN source /opt/emsdk/emsdk_env.sh \

@@ -203,6 +203,8 @@ arrow::Result<std::shared_ptr<arrow::Buffer>> WebDB::Connection::PollPendingQuer
                 return nullptr;
             case PendingExecutionResult::RESULT_NOT_READY:
                 break;
+            case PendingExecutionResult::BLOCKED:
+                break;
             case PendingExecutionResult::EXECUTION_ERROR: {
                 auto err = current_pending_query_result_->GetError();
                 current_pending_query_result_.reset();

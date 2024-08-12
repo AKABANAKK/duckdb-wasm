@@ -38,7 +38,7 @@ export abstract class DuckDBBrowserBindings extends DuckDBBindingsBase {
         // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
         imports: any,
         success: (instance: WebAssembly.Instance, module: WebAssembly.Module) => void,
-    ): Emscripten.WebAssemblyExports {
+    ): WebAssembly.Exports | undefined {
         // We rely on the following here:
         //
         // ...when a Request object is created using the Request.Request constructor,
@@ -165,7 +165,7 @@ export abstract class DuckDBBrowserBindings extends DuckDBBindingsBase {
             };
             run();
         }
-        return [];
+        return undefined;
     }
 
     /// Instantiation must be done by the browser variants

@@ -20,6 +20,7 @@ DUCKDB_HASH=${shell cd submodules/duckdb && git reflog -n 1 | head -c 10}
 
 CACHE_DIRS=${ROOT_DIR}/.ccache/ ${ROOT_DIR}/.emscripten_cache/
 DOCKER_EXEC_ENVIRONMENT=docker compose run duckdb-wasm-ci
+EXEC_ENVIRONMENT=docker compose run duckdb-wasm-ci
 
 CORES=$(shell grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
 
@@ -428,6 +429,8 @@ clean:
 	rm -rf packages/duckdb-wasm-app/build
 	rm -rf submodules/duckdb/build
 	rm -rf packages/duckdb-wasm/dist
+	rm -rf packages/duckdb-wasm-shell/node_modules
+	rm -rf packages/duckdb-wasm-shell
 
 build/docker_ci_image:
 	command -v emcc &> /dev/null || docker compose build
