@@ -58,18 +58,15 @@ export const BROWSER_RUNTIME: DuckDBRuntime & {
                 }
                 const file = { ...info, blob: null } as DuckDBFileInfo;
                 BROWSER_RUNTIME._fileInfoCache.set(fileId, file);
+                if (!BROWSER_RUNTIME._files.has(file.fileName) && BROWSER_RUNTIME._preparedHandles[file.fileName]) {
+                    BROWSER_RUNTIME._files.set(file.fileName, BROWSER_RUNTIME._preparedHandles[file.fileName]);
+                    delete BROWSER_RUNTIME._preparedHandles[file.fileName];
+                }
                 return file;
             } catch (error) {
                 console.warn(error);
                 return null;
             }
-            const file = { ...info, blob: null } as DuckDBFileInfo;
-            BROWSER_RUNTIME._fileInfoCache.set(fileId, file);
-            if (!BROWSER_RUNTIME._files.has(file.fileName) && BROWSER_RUNTIME._preparedHandles[file.fileName]) {
-                BROWSER_RUNTIME._files.set(file.fileName, BROWSER_RUNTIME._preparedHandles[file.fileName]);
-                delete BROWSER_RUNTIME._preparedHandles[file.fileName];
-            }
-            return file;
         } catch (e: any) {
             console.log(e);
             return null;
@@ -135,7 +132,7 @@ export const BROWSER_RUNTIME: DuckDBRuntime & {
                 }
                 const fileHandle = await dirHandle.getFileHandle(fileName, { create: false }).catch(e => {
                     if (e?.name === 'NotFoundError') {
-                        console.log(`File ${path} does not exists yet, creating`);
+                        console.log(`File ${path} does not exists yet, creating...`);
                         return dirHandle.getFileHandle(fileName, { create: true });
                     }
                     throw e;
