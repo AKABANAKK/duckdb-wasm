@@ -357,6 +357,10 @@ app_start_corp:
 app: wasm wasmpack shell docs js_tests_release
 	yarn workspace @duckdb/duckdb-wasm-app build:release
 
+.PHONY: app_debug
+app_debug: wasm_debug wasmpack shell docs js_debug build/data
+	yarn workspace @duckdb/duckdb-wasm test:browser:debug
+
 build_loadable:
 	DUCKDB_PLATFORM=wasm_${TARGET} DUCKDB_WASM_LOADABLE_EXTENSIONS=1 GEN=ninja ./scripts/wasm_build_lib.sh relsize ${TARGET}
 
@@ -423,13 +427,21 @@ compile_commands:
 # Clean the repository
 .PHONY: clean
 clean:
+	rm -rf .ccache
+	rm -rf .emscripten_cache
 	rm -rf build
 	rm -rf target
+	rm -rf node_module
 	cd packages/duckdb-wasm-shell && rm -rf node_modules
-	rm -rf packages/duckdb-wasm-app/build
-	rm -rf submodules/duckdb/build
+	cd packages/duckdb-wasm-app && rm -rf node_modules
+	cd packages/duckdb-wasm && rm -rf node_modules
+	cd packages/benchmarks && rm -rf node_modules
+	rm -rf packages/benchmarks/build
+	rm -rf packages/duckdb-wasm/build
 	rm -rf packages/duckdb-wasm/dist
-	rm -rf packages/duckdb-wasm-shell/node_modules
+	rm -rf packages/duckdb-wasm-app/build
+	rm -rf packages/duckdb-wasm-shell/build
+#   rm -rf submodules/duckdb/build
 
 build/docker_ci_image:
 	command -v emcc &> /dev/null || docker compose build
