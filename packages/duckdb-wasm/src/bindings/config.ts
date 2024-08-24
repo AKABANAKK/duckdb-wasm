@@ -66,4 +66,8 @@ export interface DuckDBConfig {
      * Whether to allow unsigned extensions
      */
     allowUnsignedExtensions?: boolean;
+    /**
+     * Custom user agent string
+     */
+    customUserAgent?: string;
 }
