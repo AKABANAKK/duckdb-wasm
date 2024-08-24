@@ -8,10 +8,10 @@ services:
         - GID=0
         - UID=0
     volumes:
-      - .:/wd
+      - .:/opt/duckdb/wd
       - ./.ccache:/mnt/ccache
       - ./.emscripten_cache:/mnt/emscripten_cache
     environment:
-      - CCACHE_BASEDIR=/wd/lib
+      - CCACHE_BASEDIR=/opt/duckdb/wd/lib
       - CCACHE_DIR=/mnt/ccache
       - EM_CACHE=/mnt/emscripten_cache/

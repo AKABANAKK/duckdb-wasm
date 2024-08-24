@@ -82,4 +82,4 @@ RUN source /opt/emsdk/emsdk_env.sh \
 USER ${UID}:${GID}
 
 ENTRYPOINT ["tini", "-v", "--", "/opt/entrypoint.sh"]
-WORKDIR /wd
+WORKDIR /opt/duckdb/wd
