@@ -37,3 +37,4 @@ wasm_setup
 loadable_extensions
 
 package-lock.json
+yarn.lock
