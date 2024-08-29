@@ -427,9 +427,9 @@ compile_commands:
 # Clean the repository
 .PHONY: clean
 clean:
-    rm -rf check_duckdb
-    rm -rf wasm_setup
-    rm -rf loadable_extensions
+	rm -rf check_duckdb
+	rm -rf wasm_setup
+	rm -rf loadable_extensions
 	rm -rf .ccache
 	rm -rf .emscripten_cache
 	rm -rf build
@@ -444,7 +444,7 @@ clean:
 	rm -rf packages/duckdb-wasm/dist
 	rm -rf packages/duckdb-wasm-app/build
 	rm -rf packages/duckdb-wasm-shell/build
-    rm -rf submodules/duckdb/build
+#	rm -rf submodules/duckdb/build
 
 build/docker_ci_image:
 	command -v emcc &> /dev/null || docker compose build
