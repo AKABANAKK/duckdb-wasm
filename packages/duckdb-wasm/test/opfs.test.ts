@@ -1,5 +1,6 @@
 import * as duckdb from '../src/';
 import * as arrow from 'apache-arrow';
+import {LogLevel} from "../src/";
 
 export function testOPFS(baseDir: string, bundle: () => duckdb.DuckDBBundle): void {
     // we use a separate db instance here because karma will run all tests in parallel,
@@ -8,49 +9,22 @@ export function testOPFS(baseDir: string, bundle: () => duckdb.DuckDBBundle): vo
     let conn: duckdb.AsyncDuckDBConnection;
 
     beforeAll(async () => {
-        console.log("[beforeAll][start]");
-        // const opfsRoot = await navigator.storage.getDirectory();
-        // await opfsRoot.removeEntry('test.db').catch((e) => {
-        //     console.error(1,e);
-        // });
-        // await opfsRoot.removeEntry('test.db.wal').catch((e) => {
-        //     console.error(11,e);
-        // });
-        // const logger = new duckdb.ConsoleLogger();
-        // const worker = new Worker(bundle().mainWorker!);
-        // db = new duckdb.AsyncDuckDB(logger, worker);
-        // await db.instantiate(bundle().mainModule, bundle().pthreadWorker);
-        console.log("[beforeAll][end]");
+        removeFiles();
     });
 
     afterAll(async () => {
-        console.log("[afterAll][start]");
         if( conn ){
             await conn.close();
         }
         if( db ) {
             await db.terminate();
         }
-        const opfsRoot = await navigator.storage.getDirectory();
-        await opfsRoot.removeEntry('test.db').catch((e) => {
-            console.error(4,e);
-        });
-        await opfsRoot.removeEntry('test.db.wal').catch((e) => {
-            console.error(44,e);
-        });
-        console.log("[afterAll][end]");
+        removeFiles();
     });
 
     beforeEach(async () => {
-        console.log("[beforeEach][start]");
-        const opfsRoot = await navigator.storage.getDirectory();
-        await opfsRoot.removeEntry('test.db').catch((e) => {
-            console.error(1,e);
-        });
-        await opfsRoot.removeEntry('test.db.wal').catch((e) => {
-            console.error(11,e);
-        });
-        const logger = new duckdb.ConsoleLogger();
+        removeFiles();
+        const logger = new duckdb.ConsoleLogger(LogLevel.ERROR);
         const worker = new Worker(bundle().mainWorker!);
         db = new duckdb.AsyncDuckDB(logger, worker);
         await db.instantiate(bundle().mainModule, bundle().pthreadWorker);
@@ -59,31 +33,22 @@ export function testOPFS(baseDir: string, bundle: () => duckdb.DuckDBBundle): vo
             accessMode: duckdb.DuckDBAccessMode.READ_WRITE
         });
         conn = await db.connect();
-        console.log("[beforeEach][end]");
     });
 
     afterEach(async () => {
-        console.log("[afterEach][start]");
         if( conn ){
             await conn.close();
         }
         if( db ) {
             await db.terminate();
         }
-        const opfsRoot = await navigator.storage.getDirectory();
-        await opfsRoot.removeEntry('test.db').catch((e) => {
-            console.error(4,e);
-        });
-        await opfsRoot.removeEntry('test.db.wal').catch((e) => {
-            console.error(44,e);
-        });
-        console.log("[afterEach][end]");
+        removeFiles();
     });
 
     describe('Load Data', () => {
         it('Imporet Small Parquet file', async () => {
-            console.log("[test][start]");
             await conn.send(`CREATE TABLE stu AS SELECT * FROM "${baseDir}/uni/studenten.parquet"`);
+            await conn.send(`CHECKPOINT;`);
             const result = await conn.send(`SELECT matrnr FROM stu;`);
             const batches = [];
             for await (const batch of result) {
@@ -93,11 +58,11 @@ export function testOPFS(baseDir: string, bundle: () => duckdb.DuckDBBundle): vo
             expect(table.getChildAt(0)?.toArray()).toEqual(
                 new Int32Array([24002, 25403, 26120, 26830, 27550, 28106, 29120, 29555]),
             );
-            console.log("[test][end]");
         });
 
         it('Import Larget Parquet file', async () => {
             await conn.send(`CREATE TABLE lineitem AS SELECT * FROM "${baseDir}/tpch/0_01/parquet/lineitem.parquet"`);
+            await conn.send(`CHECKPOINT;`);
             const result = await conn.send(`SELECT count(*)::INTEGER as cnt FROM lineitem;`);
             const batches = [];
             for await (const batch of result) {
@@ -115,7 +80,7 @@ export function testOPFS(baseDir: string, bundle: () => duckdb.DuckDBBundle): vo
             await conn.close();
             await db.terminate();
 
-            const logger = new duckdb.ConsoleLogger();
+            const logger = new duckdb.ConsoleLogger(LogLevel.ERROR);
             const worker = new Worker(bundle().mainWorker!);
             db = new duckdb.AsyncDuckDB(logger, worker);
             await db.instantiate(bundle().mainModule, bundle().pthreadWorker);
@@ -134,29 +99,31 @@ export function testOPFS(baseDir: string, bundle: () => duckdb.DuckDBBundle): vo
             expect(table.getChildAt(0)?.get(0)).toBeGreaterThan(60_000);
         });
 
-        // // it('Export as CSV to OPFS + Load CSV that are already in OPFS', async () => {
-        // //     // 1. register a opfs file handle so csv data can be exported from duckdb to opfs
-        // //     const opfsRoot = await navigator.storage.getDirectory();
-        // //     await opfsRoot.removeEntry('test.csv').catch(() => {});
-        // //     const testHandle = await opfsRoot.getFileHandle('test.csv', { create: true });
-        // //     await db.registerFileHandle('test.csv', testHandle, duckdb.DuckDBDataProtocol.BROWSER_FSACCESS, true);
-        // //     // 2. export csv data to opfs
-        // //     await conn.send(`COPY (SELECT * FROM "${baseDir}/tpch/0_01/parquet/lineitem.parquet") TO 'test.csv'`);
-        // //     // 3. exit, reopen and load the csv file
-        // //     await db.dropFile('test.csv');
-        // //     await conn.close();
-        // //     await db.open({});
-        // //     conn = await db.connect();
-        // //     await db.registerFileHandle('test.csv', testHandle, duckdb.DuckDBDataProtocol.BROWSER_FSACCESS, true);
-        // //
-        // //     const result = await conn.send(`SELECT count(*)::INTEGER as cnt FROM 'test.csv';`);
-        // //     const batches = [];
-        // //     for await (const batch of result) {
-        // //         batches.push(batch);
-        // //     }
-        // //     const table = await new arrow.Table<{ cnt: arrow.Int }>(batches);
-        // //     expect(table.getChildAt(0)?.get(0)).toBeGreaterThan(60_000);
-        // // });
+        // it('Export as CSV to OPFS + Load CSV that are already in OPFS', async () => {
+        //     // 1. register a opfs file handle so csv data can be exported from duckdb to opfs
+        //     const opfsRoot = await navigator.storage.getDirectory();
+        //     await opfsRoot.removeEntry('test.csv').catch(() => {});
+        //     const testHandle = await opfsRoot.getFileHandle('test.csv', { create: true });
+        //     await db.registerFileHandle('test.csv', testHandle, duckdb.DuckDBDataProtocol.BROWSER_FSACCESS, true);
+        //     // 2. export csv data to opfs
+        //     await conn.send(`CREATE TABLE zzz AS SELECT * FROM "${baseDir}/tpch/0_01/parquet/lineitem.parquet"`);
+        //     await conn.send(`COPY (SELECT * FROM zzz) TO 'test.csv'`);
+        //     // 3. exit, reopen and load the csv file
+        //     await conn.close();
+        //     await db.dropFile('test.csv');
+        //     await db.terminate();
+        //     await db.open({});
+        //     conn = await db.connect();
+        //     await db.registerFileHandle('test.csv', testHandle, duckdb.DuckDBDataProtocol.BROWSER_FSACCESS, true);
+        //
+        //     const result = await conn.send(`SELECT count(*)::INTEGER as cnt FROM 'test.csv';`);
+        //     const batches = [];
+        //     for await (const batch of result) {
+        //         batches.push(batch);
+        //     }
+        //     const table = await new arrow.Table<{ cnt: arrow.Int }>(batches);
+        //     expect(table.getChildAt(0)?.get(0)).toBeGreaterThan(60_000);
+        // });
 
         it('Load Parquet file that are already in OPFS', async () => {
             // download parquet
@@ -176,6 +143,7 @@ export function testOPFS(baseDir: string, bundle: () => duckdb.DuckDBBundle): vo
             //   Note: even if we do not use read_parquet function, it works as well, here we use read_parquet to test the function
             await db.registerFileHandle('test.parquet', fileHandle, duckdb.DuckDBDataProtocol.BROWSER_FSACCESS, true);
             await conn.send(`CREATE TABLE lineitem AS SELECT * FROM read_parquet('test.parquet')`);
+            await conn.send(`CHECKPOINT;`);
 
             const result = await conn.send(`SELECT count(*)::INTEGER as cnt FROM lineitem;`);
             const batches = [];
@@ -186,4 +154,10 @@ export function testOPFS(baseDir: string, bundle: () => duckdb.DuckDBBundle): vo
             expect(table.getChildAt(0)?.get(0)).toBeGreaterThan(60_000);
         });
     });
+
+    async function removeFiles() {
+        const opfsRoot = await navigator.storage.getDirectory();
+        await opfsRoot.removeEntry('test.db').catch(()=>{});
+        await opfsRoot.removeEntry('test.db.wal').catch(()=>{});
+    }
 }
