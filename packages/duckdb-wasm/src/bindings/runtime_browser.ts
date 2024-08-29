@@ -132,7 +132,7 @@ export const BROWSER_RUNTIME: DuckDBRuntime & {
                 }
                 const fileHandle = await dirHandle.getFileHandle(fileName, { create: false }).catch(e => {
                     if (e?.name === 'NotFoundError') {
-                        console.log(`File ${path} does not exists yet, creating...`);
+                        console.debug(`File ${path} does not exists yet, creating...`);
                         return dirHandle.getFileHandle(fileName, { create: true });
                     }
                     throw e;
@@ -370,7 +370,6 @@ export const BROWSER_RUNTIME: DuckDBRuntime & {
                     }
                     const result = mod._malloc(2 * 8);
                     const fileSize = handle.getSize();
-                    console.log(`[BROWSER_RUNTIME] opening ${file.fileName} with size ${fileSize}`);
                     mod.HEAPF64[(result >> 3) + 0] = fileSize;
                     mod.HEAPF64[(result >> 3) + 1] = 0;
                     return result;
