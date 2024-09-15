@@ -28,19 +28,6 @@ import * as arrow from 'apache-arrow';
         const conn = await db.connect();
         await conn.query<{ v: arrow.Int }>(`SELECT count(*)::INTEGER as v FROM generate_series(0, 100) t(v)`);
 
-        // opfs
-        // const opfsRoot = await navigator.storage.getDirectory();
-        // await opfsRoot.removeEntry('test.db').catch(e => {});
-        // await db.open({
-        //     path: 'opfs://test.db',
-        //     accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
-        // });
-        // const conn = await db.connect();
-        // await conn.send(`CREATE TABLE integers(i INTEGER, j INTEGER);`);
-        // await conn.send(`INSERT INTO integers VALUES (3, 4), (5, 6);`);
-        // await conn.send(`CHECKPOINT;`);
-        // console.log(await conn.query(`SELECT * FROM integers;`));
-
         await conn.close();
         await db.terminate();
         await worker.terminate();
