@@ -100,7 +100,7 @@ export class AsyncDuckDB implements AsyncDuckDBBindings {
         transfer: ArrayBuffer[] = [],
     ): Promise<WorkerTaskReturnType<W>> {
         if (!this._worker) {
-            console.error('cannot send a message since the worker is not set!');
+            console.error('cannot send a message since the worker is not set!',task.type,task.data);
             return undefined as any;
         }
         const mid = this._nextMessageId++;
