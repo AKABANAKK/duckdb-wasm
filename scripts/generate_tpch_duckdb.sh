@@ -16,13 +16,14 @@ TPCH_SF_OUT_DUCKDB=${TPCH_SF_OUT}/duckdb
 TPCH_SF_OUT_DUCKDB_DB=${TPCH_SF_OUT_DUCKDB}/db
 DUCKDB_SCRIPT_FILE=${TPCH_SF_OUT_DUCKDB}/script.sql
 
-# chmod +x ${DUCKDB_SHELL}
+chmod +x ${DUCKDB_SHELL}
 mkdir -p ${TPCH_SF_OUT_DUCKDB}
 rm -r ${TPCH_SF_OUT_DUCKDB}
 mkdir -p ${TPCH_SF_OUT_DUCKDB}
 
 cat << END >${DUCKDB_SCRIPT_FILE}
 .open ${TPCH_SF_OUT_DUCKDB_DB}
+install tpch;
 load tpch;
 call dbgen(sf = ${SCALE_FACTOR});
 checkpoint;

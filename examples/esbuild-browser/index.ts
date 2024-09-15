@@ -24,7 +24,6 @@ import * as arrow from 'apache-arrow';
         const db = new duckdb.AsyncDuckDB(logger, worker);
         await db.instantiate(DUCKDB_CONFIG.mainModule, DUCKDB_CONFIG.pthreadWorker);
 
-        // in-memory
         const conn = await db.connect();
         await conn.query<{ v: arrow.Int }>(`SELECT count(*)::INTEGER as v FROM generate_series(0, 100) t(v)`);
 
